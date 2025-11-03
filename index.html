@@ -7,14 +7,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      overflow: hidden;
-      background: #FFFDB7;
-      touch-action: none;
-      margin: 0;
-      font-family: sans-serif;
-      padding: 60px 10px 20px 10px;
-      color:rgb(59, 0, 59);
-    }
+    position: relative;
+    overflow: hidden;
+    background: #FFFDB7;
+    touch-action: none;
+    margin: 0;
+    font-family: sans-serif;
+    padding: 60px 10px 20px 10px;
+    color: rgb(59, 0, 59);
+    z-index: 0;
+  }
 
     .flower {
       position: absolute;
@@ -143,21 +145,60 @@
 
     /* Video */
     video {
-    position: fixed;       
-    bottom: 0%;            
-    left: 50%;             
-    transform: translateX(-50%) scale(1.3); 
-    width: auto;           
-    height: auto;         
-    min-width: 100%;       
-    z-index: 5;            
-    }
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.3);
+    min-width: 100vw;
+    min-height: 100vh;
+    width: auto;
+    height: auto;
+    object-fit: cover;
+    z-index: 1; /* below title, above background */
+    background: black;
+    border: none;
+  }
+    h1 {
+    position: absolute;
+    top: 6%;
+    z-index: 20;
+    text-align: center;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    font-weight: bold;
+  }
+
+    /* Transparent container above video */
+  #overlayTitle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* lets clicks pass to video */
+    z-index: 2;
+  }
+
+  /* Title text inside overlay */
+  #overlayTitle h1 {
+    color: rgb(59, 0, 59);
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 0 2px 6px rgba(255,255,255,0.8);
+    pointer-events: none; /* text never blocks tap */
+    padding: 0 10px;
+  }
   </style>
 </head>
 <body>
 
   <!-- Title -->
-  <h1 id="title" class="text-3xl font-bold mb-4 text-center">Apasă pe fundiță pentru a desface buchetul.</h1>
+  <div id="overlayTitle">
+    <h1 id="title">Apasă pe fundiță pentru a desface buchetul.</h1>
+  </div>
 
   <!-- Video -->
   <video id="introVideo" playsinline>
