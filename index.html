@@ -144,7 +144,7 @@
     /* Video */
     video {
     position: fixed;       
-    bottom: 5%;            
+    bottom: 0%;            
     left: 50%;             
     transform: translateX(-50%) scale(1.3); 
     width: auto;           
@@ -161,7 +161,7 @@
 
   <!-- Video -->
   <video id="introVideo" playsinline>
-    <source src="media/video/bouquet_open.mp4" type="video/mp4">
+    <source src="media/video/bouquet_open.mp4" type="video/mp4" poster="media/video/poster.jpg">
     Your browser does not support video.
   </video>
 
@@ -185,100 +185,141 @@
   </div>
 
   <script>
-    const video = document.getElementById('introVideo');
-    const title = document.getElementById('title');
-    const galleryContainer = document.getElementById('galleryContainer');
-    const gallery = document.getElementById('gallery');
-    const modal = document.getElementById('modal');
-    const modalImg = document.getElementById('modalImg');
-    const modalDesc = document.getElementById('modalDesc');
-    const closeModal = document.getElementById('closeModal');
-    const instruction = document.getElementById('instruction');
-    const flowers = [];
+  const video = document.getElementById('introVideo');
+  const title = document.getElementById('title');
+  const galleryContainer = document.getElementById('galleryContainer');
+  const gallery = document.getElementById('gallery');
+  const modal = document.getElementById('modal');
+  const modalImg = document.getElementById('modalImg');
+  const modalDesc = document.getElementById('modalDesc');
+  const closeModal = document.getElementById('closeModal');
+  const instruction = document.getElementById('instruction');
+  const flowers = [];
 
-    const flowerSources = Array.from({ length: 21 }, (_, i) => `media/flowers/flower${i + 1}.svg`);
-    const galleryImages = Array.from({ length: 55 }, (_, i) => ({
-      src: `media/gallery/photo${i + 1}.jpg`,
-    }));
+  const flowerSources = Array.from({ length: 21 }, (_, i) => `media/flowers/flower${i + 1}.svg`);
+  const galleryImages = Array.from({ length: 55 }, (_, i) => ({
+    src: `media/gallery/photo${i + 1}.jpg`,
+  }));
 
-    video.addEventListener('click', () => video.play());
+  video.addEventListener('click', () => video.play());
 
-    video.addEventListener('ended', () => {
-      title.classList.add('hidden');
-      video.classList.add('hidden');
-      galleryContainer.classList.remove('hidden');
-      spawnFlowers();
-      loadGallery();
-      instruction.classList.remove('hidden');
-      makeDraggable(instruction);
+  video.addEventListener('ended', () => {
+    title.classList.add('hidden');
+    video.classList.add('hidden');
+    galleryContainer.classList.remove('hidden');
+    spawnFlowers();
+    loadGallery();
+    instruction.classList.remove('hidden');
+    makeDraggable(instruction);
+  });
+
+  function spawnFlowers() {
+    const numFlowers = 21;
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+
+    for (let i = 0; i < numFlowers; i++) {
+      const f = document.createElement('img');
+      f.src = flowerSources[i % flowerSources.length];
+      f.classList.add('flower');
+
+      const scale = 1.2 + Math.random() * 1.2;
+      const size = 400 * scale;
+      f.style.width = `${size}px`;
+      f.style.height = `${size}px`;
+
+      const x = Math.random() * screenW -200;
+      const y = Math.random() * screenH - 200;
+      f.style.left = `${x}px`;
+      f.style.top = `${y}px`;
+
+      document.body.appendChild(f);
+      makeDraggable(f, true);
+      flowers.push(f);
+    }
+  }
+
+  // smoother, easier dragging with swipe-away
+  function makeDraggable(el, isFlower = false) {
+    let offsetX = 0, offsetY = 0, dragging = false;
+    let startX = 0, startY = 0, lastX = 0, lastY = 0, startTime = 0;
+
+    el.addEventListener('pointerdown', e => {
+      dragging = true;
+      el.style.cursor = 'grabbing';
+      offsetX = e.clientX - el.offsetLeft;
+      offsetY = e.clientY - el.offsetTop;
+      startX = e.clientX;
+      startY = e.clientY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      startTime = Date.now();
+      el.setPointerCapture(e.pointerId);
     });
 
-    function spawnFlowers() {
-      const numFlowers = 21;
-      const screenW = window.innerWidth;
-      const screenH = window.innerHeight;
+    el.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - offsetX;
+      const dy = e.clientY - offsetY;
+      el.style.left = dx + 'px';
+      el.style.top = dy + 'px';
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
 
-      for (let i = 0; i < numFlowers; i++) {
-        const f = document.createElement('img');
-        f.src = flowerSources[i % flowerSources.length];
-        f.classList.add('flower');
+    el.addEventListener('pointerup', e => {
+      if (!dragging) return;
+      dragging = false;
+      el.style.cursor = 'grab';
 
-        const scale = 1.2 + Math.random() * 1.2;
-        const size = 400 * scale;
-        f.style.width = `${size}px`;
-        f.style.height = `${size}px`;
+      const elapsed = Date.now() - startTime;
+      const velocityX = (e.clientX - startX) / elapsed;
+      const velocityY = (e.clientY - startY) / elapsed;
+      const distanceEdge = Math.min(
+        e.clientX, window.innerWidth - e.clientX,
+        e.clientY, window.innerHeight - e.clientY
+      );
 
-        const x = Math.random() * screenW - 200;
-        const y = Math.random() * screenH - 200;
-        f.style.left = `${x}px`;
-        f.style.top = `${y}px`;
-
-        document.body.appendChild(f);
-        makeDraggable(f);
-        flowers.push(f);
+      // if flicked fast or near edge, swoosh away
+      if (isFlower && (Math.abs(velocityX) > 0.5 || Math.abs(velocityY) > 0.5 || distanceEdge < 80)) {
+        swooshAway(el, velocityX, velocityY);
       }
-    }
-
-    function makeDraggable(el) {
-      let offsetX, offsetY, dragging=false;
-      el.addEventListener('pointerdown', e => {
-        dragging = true;
-        el.style.cursor = 'grabbing';
-        offsetX = e.clientX - el.offsetLeft;
-        offsetY = e.clientY - el.offsetTop;
-        el.setPointerCapture(e.pointerId);
-      });
-      el.addEventListener('pointermove', e => {
-        if(!dragging) return;
-        el.style.left = (e.clientX - offsetX) + 'px';
-        el.style.top = (e.clientY - offsetY) + 'px';
-      });
-      el.addEventListener('pointerup', () => {
-        dragging = false;
-        el.style.cursor = 'grab';
-      });
-    }
-
-    function loadGallery() {
-      galleryImages.forEach(item => {
-        const img = document.createElement('img');
-        img.src = item.src;
-        img.alt = 'Gallery image';
-        img.addEventListener('click', () => openModal(item.src, item.desc));
-        gallery.appendChild(img);
-      });
-    }
-
-    function openModal(src, desc) {
-      modalImg.src = src;
-      modalDesc.textContent = desc;
-      modal.classList.remove('hidden');
-    }
-
-    closeModal.addEventListener('click', () => modal.classList.add('hidden'));
-    modal.addEventListener('click', e => {
-      if (e.target === modal) modal.classList.add('hidden');
     });
-  </script>
-</body>
-</html>
+  }
+
+  function swooshAway(el, vx, vy) {
+    const flyX = vx * 2000 || (Math.random() - 0.5) * 2000;
+    const flyY = vy * 2000 || (Math.random() - 0.5) * 2000;
+
+    el.style.transition = 'transform 1s ease-out, opacity 1s ease-out';
+    el.style.transform = `translate(${flyX}px, ${flyY}px) rotate(${Math.random() * 720 - 360}deg)`;
+    el.style.opacity = '0';
+
+    setTimeout(() => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 1000);
+  }
+
+  function loadGallery() {
+    gallery.innerHTML = '';
+    galleryImages.forEach(item => {
+      const img = document.createElement('img');
+      img.src = item.src;
+      img.alt = 'Gallery image';
+      img.addEventListener('click', () => openModal(item.src, item.desc));
+      gallery.appendChild(img);
+    });
+  }
+
+  function openModal(src, desc) {
+    modalImg.src = src;
+    modalDesc.textContent = desc;
+    modal.classList.remove('hidden');
+  }
+
+  closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+  modal.addEventListener('click', e => {
+    if (e.target === modal) modal.classList.add('hidden');
+  });
+</script>
+
