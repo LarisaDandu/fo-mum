@@ -144,17 +144,15 @@
     }
 
     /* Video */
-    video {
+  video {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(1.3);
-    min-width: 100vw;
-    min-height: 100vh;
-    width: auto;
-    height: auto;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
     object-fit: cover;
-    z-index: 1; /* below title, above background */
+    z-index: 1;
     border: none;
   }
     h1 {
@@ -225,6 +223,18 @@
   </div>
 
   <script>
+
+  function resizeVideo() {
+  const video = document.getElementById('introVideo');
+  if (!video) return;
+  video.style.width = window.innerWidth + 'px';
+  video.style.height = window.innerHeight + 'px';
+  }
+
+  window.addEventListener('resize', resizeVideo);
+  window.addEventListener('orientationchange', resizeVideo);
+  window.addEventListener('load', resizeVideo);  
+
   const video = document.getElementById('introVideo');
   const title = document.getElementById('title');
   const galleryContainer = document.getElementById('galleryContainer');
