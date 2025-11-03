@@ -145,15 +145,18 @@
 
     /* Video */
   video {
-    position: fixed;
-    top: 50%;
+    position: absolute;
+    bottom: -20vh; /* keeps it slightly above bottom edge */
     left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    z-index: 1;
+    transform: translateX(-50%);
+    width: 200vw; /* scales nicely on all screens */
+    max-width: 700px; /* optional limit for large displays */
+    height: auto;
+    object-fit: contain;
     border: none;
+    background: transparent;
+    z-index: 1;
+    display: block;
   }
     h1 {
     position: absolute;
@@ -198,10 +201,15 @@
   </div>
 
   <!-- Video -->
-  <video id="introVideo" playsinline>
-    <source src="media/video/bouquet_open.mp4" type="video/mp4" poster="media/video/poster.jpg">
+  <video id="introVideo" playsinline
+  webkit-playsinline 
+  preload="metadata" 
+  poster="media/video/poster.jpg"
+  muted>
+    <source src="media/video/bouquet_open.mp4" type="video/mp4">
     Your browser does not support video.
   </video>
+  
 
   <!-- Scrollable gallery container -->
   <div id="galleryContainer" class="hidden">
